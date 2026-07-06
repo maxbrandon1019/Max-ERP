@@ -36,7 +36,7 @@ Follow these instructions to set up and run **Max-ERP** locally on your machine.
 
 1. **Clone the repository:**
    ```bash
-   git clone [https://github.com/maxbrandon1019/Max-ERP.git](https://github.com/maxbrandon1019/Max-ERP.git)
+   git clone https://github.com/maxbrandon1019/Max-ERP
    cd Max-ERP
 
 2. **Install project dependencies:**
