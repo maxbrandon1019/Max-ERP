@@ -1,0 +1,6 @@
+{
+  "name": "Nexus ERP",
+  "description": "An advanced Enterprise Resource Planning system for modern industry management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
