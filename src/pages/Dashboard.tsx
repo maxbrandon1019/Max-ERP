@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { 
   BarChart, 
   Bar, 
@@ -18,11 +20,13 @@ import {
   DollarSign, 
   Users, 
   Package, 
-  Activity 
+  Activity,
+  Download
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAudit } from '@/contexts/AuditContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useHR } from '@/contexts/HRContext';
 
 const revenueData = [
   { name: 'Jan', value: 4000 },
@@ -34,15 +38,57 @@ const revenueData = [
   { name: 'Jul', value: 7000 },
 ];
 
-import { useHR } from '@/contexts/HRContext';
-
-// Add this at the beginning of the Dashboard component
 export function Dashboard() {
   const { logs } = useAudit();
   const { user } = useAuth();
   const { tasks, updateTaskProgress } = useHR();
   const isAdmin = user?.role === 'admin';
+  const isManager = user?.role === 'manager';
   const myTasks = tasks.filter(t => t.assigneeId === user?.id);
+
+  const handleDownloadCSV = () => {
+    const headers = ['Task ID', 'Title', 'Assignee ID', 'Status', 'Due Date', 'Progress'];
+    const rows = tasks.map(t => [
+      t.id, 
+      `"${t.title.replace(/"/g, '""')}"`, 
+      t.assigneeId, 
+      t.status, 
+      t.dueDate, 
+      `${t.progress || 0}%`
+    ]);
+    const csvContent = [headers, ...rows].map(e => e.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'departmental_report.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleDownloadPDF = () => {
+    const doc = new jsPDF();
+    doc.text('Departmental Performance & Task Summary', 14, 15);
+    
+    const tableData = tasks.map(t => [
+      t.id, 
+      t.title, 
+      t.assigneeId, 
+      t.status, 
+      t.dueDate, 
+      `${t.progress || 0}%`
+    ]);
+    
+    autoTable(doc, {
+      startY: 20,
+      head: [['Task ID', 'Title', 'Assignee ID', 'Status', 'Due Date', 'Progress']],
+      body: tableData,
+    });
+    
+    doc.save('departmental_report.pdf');
+  };
 
   const [kpiData, setKpiData] = useState(() => {
     return Array.from({ length: 15 }, (_, i) => ({
@@ -109,9 +155,22 @@ export function Dashboard() {
           <p className="text-sm text-slate-500">Overview of your enterprise metrics and operations.</p>
         </div>
         <div className="flex gap-2">
-          <button className="bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors">
-            Download Report
-          </button>
+          {isManager || isAdmin ? (
+            <>
+              <button 
+                onClick={handleDownloadCSV}
+                className="bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" /> CSV Report
+              </button>
+              <button 
+                onClick={handleDownloadPDF}
+                className="bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" /> PDF Report
+              </button>
+            </>
+          ) : null}
           <button className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">
             New Transaction
           </button>
