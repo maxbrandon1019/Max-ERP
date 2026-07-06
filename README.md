@@ -38,3 +38,23 @@ Follow these instructions to set up and run **Max-ERP** locally on your machine.
    ```bash
    git clone [https://github.com/maxbrandon1019/Max-ERP.git](https://github.com/maxbrandon1019/Max-ERP.git)
    cd Max-ERP
+
+2. **Install project dependencies:**
+```bash
+npm install
+Configure Environment Variables:
+
+3. ** Copy the example environment file: **
+```bash
+cp .env.example .env.local
+Open .env.local and add your Gemini API Key and Firebase credentials:
+
+4. ** Code snippet**
+GEMINI_API_KEY=your_actual_gemini_api_key
+Launch the local development server:
+
+```bash
+npm run dev
+View the Application:
+
+Open your browser and navigate to http://localhost:5173 (or the URL shown in your terminal).
