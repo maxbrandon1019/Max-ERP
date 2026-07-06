@@ -16,20 +16,28 @@ const InventoryContext = createContext<InventoryContextType | undefined>(undefin
 
 export function InventoryProvider({ children }: { children: ReactNode }) {
   const { logAction } = useAudit();
+  const { activeOrganization } = useAuth();
   const [items, setItems] = useState<InventoryItem[]>([]);
 
   useEffect(() => {
+    if (!activeOrganization) {
+      setItems([]);
+      return;
+    }
     const unsub = onSnapshot(collection(db, 'inventory'), (snapshot) => {
-      setItems(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as InventoryItem[]);
+      let invItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as InventoryItem[];
+      invItems = invItems.filter(i => i.organizationId === activeOrganization.id);
+      setItems(invItems);
     }, (error) => {
       handleFirestoreError(error, OperationType.LIST, 'inventory');
     });
     return () => unsub();
-  }, []);
+  }, [activeOrganization]);
 
   const addItem = async (item: Omit<InventoryItem, 'id'>) => {
+    if (!activeOrganization) return;
     try {
-      await addDoc(collection(db, 'inventory'), item);
+      await addDoc(collection(db, 'inventory'), { ...item, organizationId: activeOrganization.id });
       logAction('Inventory', 'Add Item', `Added inventory item "${item.name}"`);
     } catch (error) {
       console.error(error);

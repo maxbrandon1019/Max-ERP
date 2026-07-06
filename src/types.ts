@@ -1,3 +1,8 @@
+export interface Organization {
+  id: string;
+  name: string;
+}
+
 export interface User {
   id: string;
   name: string;
@@ -5,6 +10,7 @@ export interface User {
   role: 'admin' | 'manager' | 'employee';
   avatar?: string;
   departmentId?: string;
+  organizationIds: string[]; // Organizations the user has access to
 }
 
 export interface Metric {
@@ -22,12 +28,14 @@ export interface InventoryItem {
   quantity: number;
   status: 'In Stock' | 'Low Stock' | 'Out of Stock';
   lastUpdated: string;
+  organizationId: string;
 }
 
 export interface Department {
   id: string;
   name: string;
   headId: string | null;
+  organizationId: string;
 }
 
 export interface Employee {
@@ -39,6 +47,7 @@ export interface Employee {
   position: string;
   status: 'Active' | 'On Leave' | 'Terminated';
   joinDate: string;
+  organizationId: string;
 }
 
 export interface Task {
@@ -48,6 +57,7 @@ export interface Task {
   status: 'Pending' | 'In Progress' | 'Completed';
   dueDate: string;
   progress?: number;
+  organizationId: string;
 }
 
 export interface AuditLog {
@@ -58,6 +68,7 @@ export interface AuditLog {
   action: string;
   module: string;
   details: string;
+  organizationId: string;
 }
 
 export interface Transaction {
@@ -67,5 +78,18 @@ export interface Transaction {
   amount: number;
   type: 'income' | 'expense';
   status: 'Completed' | 'Pending' | 'Failed';
+  organizationId: string;
 }
+
+export interface Invoice {
+  id: string;
+  invoiceNumber: string;
+  customerName: string;
+  date: string;
+  dueDate: string;
+  amount: number;
+  status: 'Draft' | 'Sent' | 'Paid' | 'Overdue';
+  organizationId: string;
+}
+
 

@@ -13,6 +13,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { HRProvider } from './contexts/HRContext';
 import { AuditProvider } from './contexts/AuditContext';
 import { InventoryProvider } from './contexts/InventoryContext';
+import { FinanceProvider } from './contexts/FinanceContext';
 
 function ProtectedRoute({ module }: { module: string }) {
   const { user, hasPermission } = useAuth();
@@ -36,25 +37,27 @@ export default function App() {
       <AuditProvider>
         <HRProvider>
           <InventoryProvider>
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<AppLayout />}>
-                  <Route index element={<Dashboard />} />
-                  <Route path="inventory" element={<ProtectedRoute module="inventory" />}>
-                    <Route index element={<Inventory />} />
+            <FinanceProvider>
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<AppLayout />}>
+                    <Route index element={<Dashboard />} />
+                    <Route path="inventory" element={<ProtectedRoute module="inventory" />}>
+                      <Route index element={<Inventory />} />
+                    </Route>
+                    <Route path="hr" element={<ProtectedRoute module="hr" />}>
+                      <Route index element={<HumanResources />} />
+                    </Route>
+                    <Route path="finance" element={<ProtectedRoute module="finance" />}>
+                      <Route index element={<Finance />} />
+                    </Route>
+                    <Route path="settings" element={<ProtectedRoute module="settings" />}>
+                      <Route index element={<div className="p-6 text-slate-500">Settings module under construction.</div>} />
+                    </Route>
                   </Route>
-                  <Route path="hr" element={<ProtectedRoute module="hr" />}>
-                    <Route index element={<HumanResources />} />
-                  </Route>
-                  <Route path="finance" element={<ProtectedRoute module="finance" />}>
-                    <Route index element={<Finance />} />
-                  </Route>
-                  <Route path="settings" element={<ProtectedRoute module="settings" />}>
-                    <Route index element={<div className="p-6 text-slate-500">Settings module under construction.</div>} />
-                  </Route>
-                </Route>
-              </Routes>
-            </BrowserRouter>
+                </Routes>
+              </BrowserRouter>
+            </FinanceProvider>
           </InventoryProvider>
         </HRProvider>
       </AuditProvider>

@@ -38,10 +38,13 @@ const revenueData = [
   { name: 'Jul', value: 7000 },
 ];
 
+import { useNavigate } from 'react-router-dom';
+
 export function Dashboard() {
   const { logs } = useAudit();
   const { user } = useAuth();
   const { tasks, updateTaskProgress } = useHR();
+  const navigate = useNavigate();
   const isAdmin = user?.role === 'admin';
   const isManager = user?.role === 'manager';
   const myTasks = tasks.filter(t => t.assigneeId === user?.id);
@@ -171,7 +174,10 @@ export function Dashboard() {
               </button>
             </>
           ) : null}
-          <button className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">
+          <button 
+            onClick={() => navigate('/finance')}
+            className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
+          >
             New Transaction
           </button>
         </div>

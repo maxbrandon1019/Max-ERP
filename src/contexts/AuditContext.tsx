@@ -13,25 +13,34 @@ interface AuditContextType {
 const AuditContext = createContext<AuditContextType | undefined>(undefined);
 
 export function AuditProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
+  const { user, activeOrganization } = useAuth();
   const [logs, setLogs] = useState<AuditLog[]>([]);
 
   useEffect(() => {
-    const q = query(collection(db, 'audit_logs'), orderBy('timestamp', 'desc'));
+    if (!activeOrganization) {
+      setLogs([]);
+      return;
+    }
+    const q = query(
+      collection(db, 'audit_logs'),
+      orderBy('timestamp', 'desc')
+    );
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const logsData = snapshot.docs.map(doc => ({
+      let logsData = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       })) as AuditLog[];
+      // Client-side filtering if missing index, though better is where() but we keep it simple
+      logsData = logsData.filter(l => l.organizationId === activeOrganization.id);
       setLogs(logsData);
     }, (error) => {
       handleFirestoreError(error, OperationType.LIST, 'audit_logs');
     });
     return () => unsubscribe();
-  }, []);
+  }, [activeOrganization]);
 
   const logAction = async (module: string, action: string, details: string) => {
-    if (!user) return;
+    if (!user || !activeOrganization) return;
     try {
       await addDoc(collection(db, 'audit_logs'), {
         timestamp: new Date().toISOString(),
@@ -40,6 +49,7 @@ export function AuditProvider({ children }: { children: ReactNode }) {
         action,
         module,
         details,
+        organizationId: activeOrganization.id
       });
     } catch (error) {
       handleFirestoreError(error, OperationType.WRITE, 'audit_logs');

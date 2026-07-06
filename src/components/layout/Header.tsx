@@ -11,7 +11,7 @@ interface HeaderProps {
 }
 
 export function Header({ setSidebarOpen }: HeaderProps) {
-  const { user, login } = useAuth();
+  const { user, login, activeOrganization, organizations, setActiveOrganization } = useAuth();
   const { employees, tasks } = useHR();
   const { items: inventory } = useInventory();
   const navigate = useNavigate();
@@ -130,6 +130,18 @@ export function Header({ setSidebarOpen }: HeaderProps) {
           </div>
         </div>
         <div className="ml-4 flex items-center gap-4 md:ml-6">
+          <div className="hidden md:flex items-center gap-2 border-r border-slate-200 pr-4">
+            <span className="text-xs font-medium text-slate-500">Org:</span>
+            <select
+              value={activeOrganization?.id || ''}
+              onChange={(e) => setActiveOrganization(e.target.value)}
+              className="text-sm border-0 bg-slate-50 rounded-md py-1 pl-2 pr-8 text-slate-700 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-indigo-600 cursor-pointer"
+            >
+              {organizations.map(org => (
+                <option key={org.id} value={org.id}>{org.name}</option>
+              ))}
+            </select>
+          </div>
           <div className="hidden md:flex items-center gap-2 border-r border-slate-200 pr-4">
             <span className="text-xs font-medium text-slate-500">View as:</span>
             <select 

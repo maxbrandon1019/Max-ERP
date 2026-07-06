@@ -21,23 +21,36 @@ const HRContext = createContext<HRContextType | undefined>(undefined);
 
 export function HRProvider({ children }: { children: ReactNode }) {
   const { logAction } = useAudit();
+  const { activeOrganization } = useAuth();
   const [departments, setDepartments] = useState<Department[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
 
   useEffect(() => {
+    if (!activeOrganization) {
+      setDepartments([]);
+      setEmployees([]);
+      setTasks([]);
+      return;
+    }
     const unsubDepts = onSnapshot(collection(db, 'departments'), (snapshot) => {
-      setDepartments(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Department[]);
+      let depts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Department[];
+      depts = depts.filter(d => d.organizationId === activeOrganization.id);
+      setDepartments(depts);
     }, (error) => {
       handleFirestoreError(error, OperationType.LIST, 'departments');
     });
     const unsubEmps = onSnapshot(collection(db, 'employees'), (snapshot) => {
-      setEmployees(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Employee[]);
+      let emps = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Employee[];
+      emps = emps.filter(e => e.organizationId === activeOrganization.id);
+      setEmployees(emps);
     }, (error) => {
       handleFirestoreError(error, OperationType.LIST, 'employees');
     });
     const unsubTasks = onSnapshot(collection(db, 'tasks'), (snapshot) => {
-      setTasks(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Task[]);
+      let tsks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Task[];
+      tsks = tsks.filter(t => t.organizationId === activeOrganization.id);
+      setTasks(tsks);
     }, (error) => {
       handleFirestoreError(error, OperationType.LIST, 'tasks');
     });
@@ -46,11 +59,12 @@ export function HRProvider({ children }: { children: ReactNode }) {
       unsubEmps();
       unsubTasks();
     };
-  }, []);
+  }, [activeOrganization]);
 
   const addDepartment = async (name: string, headId: string | null) => {
+    if (!activeOrganization) return;
     try {
-      await addDoc(collection(db, 'departments'), { name, headId });
+      await addDoc(collection(db, 'departments'), { name, headId, organizationId: activeOrganization.id });
       logAction('HR', 'Add Department', `Created department "${name}"`);
     } catch (error) {
       console.error(error);
@@ -58,8 +72,9 @@ export function HRProvider({ children }: { children: ReactNode }) {
   };
 
   const addEmployee = async (emp: Omit<Employee, 'id'>) => {
+    if (!activeOrganization) return;
     try {
-      await addDoc(collection(db, 'employees'), emp);
+      await addDoc(collection(db, 'employees'), { ...emp, organizationId: activeOrganization.id });
       logAction('HR', 'Add Employee', `Added employee ${emp.name} to department ${emp.departmentId}`);
     } catch (error) {
       console.error(error);
@@ -67,8 +82,9 @@ export function HRProvider({ children }: { children: ReactNode }) {
   };
 
   const addTask = async (task: Omit<Task, 'id'>) => {
+    if (!activeOrganization) return;
     try {
-      await addDoc(collection(db, 'tasks'), task);
+      await addDoc(collection(db, 'tasks'), { ...task, organizationId: activeOrganization.id });
       logAction('HR', 'Assign Task', `Assigned task "${task.title}" to employee ${task.assigneeId}`);
     } catch (error) {
       console.error(error);
